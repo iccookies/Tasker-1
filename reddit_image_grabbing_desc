@@ -1,0 +1,30 @@
+RedditImageParsingDeviantArt (79)
+A1: Variable Set [ Name:%parsingmode To:%par1 Do Maths:Off Append:Off ] 
+A2: If [ %SubReddit ~R /(top|hot|new|rising|controversial|gilded)$ ]
+A3: Variable Search Replace [ Variable:%SubReddit Search:(top|hot|new|rising|controversial|gilded)$ Ignore Case:On Multi-Line:Off One Match Only:On Store Matches In:%subreddittype Replace Matches:Off Replace With: ] 
+A4: Variable Search Replace [ Variable:%SubReddit Search:^[^/]+ Ignore Case:On Multi-Line:Off One Match Only:On Store Matches In:%subredditname Replace Matches:Off Replace With: ] 
+A5: HTTP Get [ Server:Port:http://www.reddit.com/r/%subredditname(1)/%subreddittype(1)/.rss Path: Attributes: Cookies: User Agent: Timeout:15 Mime Type: Output File:%subredditname(1)-%subreddittype(1)-feed.txt Trust Any Certificate:Off ] 
+A6: Read File [ File:%subredditname(1)-%subreddittype(1)-feed.txt To Var:%SubReddit_feed ] 
+A7: Delete File [ File:%subredditname(1)-%subreddittype(1)-feed.txt Shred Level:0 Use Root:Off ] 
+A8: Else 
+A9: HTTP Get [ Server:Port:http://www.reddit.com/r/%SubReddit/.rss Path: Attributes: Cookies: User Agent: Timeout:15 Mime Type: Output File:%SubReddit-feed.txt Trust Any Certificate:Off ] 
+A10: Read File [ File:%SubReddit-feed.txt To Var:%SubReddit_feed ] 
+A11: Delete File [ File:%SubReddit-feed.txt Shred Level:0 Use Root:Off ] 
+A12: End If 
+A13: Variable Search Replace [ Variable:%SubReddit_feed Search:(?<=&lt;/a&gt; &lt;br/&gt; &lt;a href=&#34;).+?(?=&#34;) Ignore Case:Off Multi-Line:Off One Match Only:Off Store Matches In:%SubRedditImageParsing Replace Matches:Off Replace With: ] 
+A14: If [ %parsingmode ~ random ]
+A15: Variable Set [ Name:%max To:%SubRedditImageParsing(#) Do Maths:Off Append:Off ] 
+A16: Variable Randomize [ Name:%imagenumber Min:1 Max:%max ] 
+A17: Else 
+A18: Variable Set [ Name:%imagenumber To:1 Do Maths:Off Append:Off ] 
+A19: End If 
+A20: If [ %SubRedditImageParsing(%imagenumber) !~R \.(jpg|png) & % %SubRedditImageParsing(%imagenumber) ~R deviantart\.(com|net)\/.+ ]
+A21: HTTP Get [ Server:Port:%SubRedditImageParsing(%imagenumber) Path: Attributes: Cookies: User Agent: Timeout:10 Mime Type: Output File:/storage/sdcard1/Download/RedditPics/deviantart.txt Trust Any Certificate:Off ] 
+A22: Read File [ File:/storage/sdcard1/Download/RedditPics/deviantart.txt To Var:%deviantartpage ] 
+A23: Variable Search Replace [ Variable:%deviantartpage Search:http:\/\/.+\.(jpg|png) Ignore Case:On Multi-Line:On One Match Only:On Store Matches In:%deviantartimage Replace Matches:Off Replace With: ] 
+A24: Variable Set [ Name:%SubRedditImageParsing(%imagenumber) To:%deviantartimage(1) Do Maths:Off Append:Off ] 
+A25: Delete File [ File:/storage/sdcard1/Download/RedditPics/deviantart.txt Shred Level:0 Use Root:Off ] 
+A26: End If 
+A27: Return [ Value:%SubRedditImageParsing(%imagenumber) Stop:Off ] 
+A28: Variable Clear [ Name:%SubReddit_feed Pattern Matching:Off ] 
+A29: Array Clear [ Name:%SubRedditImageParsing ] 
